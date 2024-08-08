@@ -20,8 +20,18 @@ const PackageList = () => {
 
         packageServices
             .getAllPackages()
-            .then(({ data }) => setPackages(data))
-            .catch(err => console.log(err))
+            .then(({ data }) => {
+                if (Array.isArray(data)) {
+                    setPackages(data)
+                } else {
+                    console.error("Expected an array but got:", data)
+                    setPackages([])
+                }
+            })
+            .catch(err => {
+                console.error(err)
+                setPackages([])
+            })
     }
 
 
@@ -30,13 +40,17 @@ const PackageList = () => {
 
 
         <Row>
-            {packages.map(eachPackage => (
-                <Col key={eachPackage._id} xs={12} md={6} lg={4} className="mt-5">
-                    <div className={loggedUser ? "" : "text-muted"}>
-                        <PackageCard {...eachPackage} isLoggedIn={!!loggedUser} />
-                    </div>
-                </Col>
-            ))}
+            {Array.isArray(packages) && packages.length > 0 ? (
+                packages.map(eachPackage => (
+                    <Col key={eachPackage._id} xs={12} md={6} lg={4} className="mt-5">
+                        <div className={loggedUser ? "" : "text-muted"}>
+                            <PackageCard {...eachPackage} isLoggedIn={!!loggedUser} />
+                        </div>
+                    </Col>
+                ))
+            ) : (
+                <p>No packages available</p>
+            )}
         </Row>
 
     );

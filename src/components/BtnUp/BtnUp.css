@@ -1,0 +1,18 @@
+.btn-gradient-up {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    font-size: 3rem;
+    color: #007bff;
+    cursor: pointer;
+    transition: opacity 0.3s, transform 0.3s;
+}
+
+.btn-gradient-up:hover {
+    color: #0056b3;
+    transform: scale(1.1);
+}
+
+.btn-gradient-up:active {
+    transform: scale(0.9);
+}
