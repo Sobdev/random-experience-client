@@ -1,7 +1,6 @@
 import PackageList from '../../components/PackageList/PackageList'
 import InfoBoxHDW from '../../components/InfoBoxHDW/InfoBoxHDW'
 import InfoBoxIncluded from '../../components/InfoBoxIncluded/InfoBoxIncluded'
-import BtnUp from '../../components/BtnUp/BtnUp'
 import { Container } from 'react-bootstrap'
 
 const HomePage = () => {
@@ -16,7 +15,6 @@ const HomePage = () => {
                 <div id="all-packages">
                     <PackageList />
                 </div>
-                <BtnUp />
             </Container>
         </>
 

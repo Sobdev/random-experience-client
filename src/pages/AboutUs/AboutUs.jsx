@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
 import { Container, Card, Row, Col } from 'react-bootstrap';
 import './AboutUs.css';
 import Confetti from "react-confetti"
+import { InfoBox } from '../../components/InfoBox/InfoBox';
 
 const teamMembers = [
     {
@@ -28,8 +28,8 @@ const AboutUs = () => {
     return (
         <Container className="about-us-container">
             <Confetti />
+            <InfoBox title="Hey its us! 👋" description="This project was a collaborative effort to create a modern web application using technologies such as React, Bootstrap, Node.js, Express and MongoDB. Our goal was to build a seamless and user-friendly experience for our users using all our knowledge adquired during our bootcamp in IronHack Madrid." />
             <Row className="justify-content-center">
-                <h1 className='h1-gradient mb-5'>Hey its us! 👋</h1>
                 {teamMembers.map((member, index) => (
                     <Col md={4} key={index} className="mb-4">
                         <Card className="team-member-card text-center">
@@ -43,9 +43,6 @@ const AboutUs = () => {
                     </Col>
                 ))}
             </Row>
-            <div className="project-description mt-4">
-                <p>This project was a collaborative effort to create a modern web application using technologies such as React, Bootstrap, Node.js, Express and MongoDB. Our goal was to build a seamless and user-friendly experience for our users using all our knowledge adquired during our bootcamp in IronHack Madrid.</p>
-            </div>
         </Container>
 
 
