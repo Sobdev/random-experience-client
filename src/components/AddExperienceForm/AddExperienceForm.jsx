@@ -1,6 +1,6 @@
 import { Form, Button, Row, Col } from "react-bootstrap"
 import { useNavigate, Link } from "react-router-dom"
-import { useState } from "react"
+import { useReducer, useState } from "react"
 import GeoForm from "../GeoForm/GeoForm"
 import LocationMap from "../LocationMap/LocationMap"
 import experiencesServices from '../../services/experiences.services'
@@ -8,30 +8,48 @@ import uploadServices from '../../services/upload.services'
 import { toast } from 'sonner'
 import './AddExperienceForm.css'
 
-const AddExpForm = () => {
+const initialState = {
+    country: "",
+    hotel: "",
+    places: "",
+    package: "",
+    imageUrl: "",
+    imageLinks: [],
+    location: {
+        type: "Point",
+        coordinates: []
+    },
+    geocode: ""
+}
 
-    const initialState = {
-        country: "",
-        hotel: "",
-        places: "",
-        package: "",
-        imageUrl: "",
-        imageLinks: [],
-        location: {
-            type: "Point",
-            coordinates: []
-        },
-        geocode: ""
+const reducer = (state, action) => {
+    switch (action.type) {
+        case 'SET_FIELD':
+            return { ...state, [action.field]: action.value }
+        case 'ADD_IMAGE_LINK':
+            return { ...state, imageLinks: [...state.imageLinks, action.value] }
+        case 'REMOVE_IMAGE_LINK':
+            return { ...state, imageLinks: state.imageLinks.filter((_, i) => i !== action.index) }
+        case 'SET_LOCATION':
+            return { ...state, location: action.location, geocode: action.geocode }
+        case 'SET_IMAGE_URL':
+            return { ...state, imageUrl: action.url }
+        case 'RESET':
+            return initialState
+        default:
+            return state
     }
+}
 
-    const [newExp, setNewExp] = useState(initialState)
+const AddExpForm = () => {
+    const [state, dispatch] = useReducer(reducer, initialState)
     const [imagePreview, setImagePreview] = useState('')
     const [imageLink, setImageLink] = useState('')
     const navigate = useNavigate()
 
     const handleInputChange = e => {
         const { name, value } = e.target
-        setNewExp({ ...newExp, [name]: value })
+        dispatch({ type: 'SET_FIELD', field: name, value })
     }
 
     const handleImageLinkChange = e => {
@@ -39,20 +57,23 @@ const AddExpForm = () => {
     }
 
     const handleAddImageLink = () => {
-        setNewExp({ ...newExp, imageLinks: [...newExp.imageLinks, imageLink] })
-        setImageLink('')
-        toast.info('Image URL added')
+        if (imageLink) {
+            dispatch({ type: 'ADD_IMAGE_LINK', value: imageLink })
+            setImageLink('')
+            toast.info('Image URL added')
+        } else {
+            toast.error('Image URL cannot be empty')
+        }
     }
 
     const handleRemoveImageLink = (index) => {
-        const updatedImageLinks = newExp.imageLinks.filter((_, i) => i !== index)
-        setNewExp({ ...newExp, imageLinks: updatedImageLinks })
+        dispatch({ type: 'REMOVE_IMAGE_LINK', index })
         toast.info('Image URL removed')
     }
 
     const handleLocationSelect = (location) => {
-        setNewExp({
-            ...newExp,
+        dispatch({
+            type: 'SET_LOCATION',
             location: {
                 type: "Point",
                 coordinates: [location.longitude, location.latitude]
@@ -67,7 +88,7 @@ const AddExpForm = () => {
 
         uploadServices.uploadimage(formData)
             .then(({ data }) => {
-                setNewExp({ ...newExp, imageUrl: data.cloudinary_url })
+                dispatch({ type: 'SET_IMAGE_URL', url: data.cloudinary_url })
                 setImagePreview(data.cloudinary_url)
                 toast.info('Cover image uploaded')
             })
@@ -79,19 +100,23 @@ const AddExpForm = () => {
 
     const handleFormSubmit = e => {
         e.preventDefault()
-        experiencesServices.createExperience(newExp)
-            .then(() => {
-                toast.success('Experience created successfully!')
-                navigate('/experiences/all')
-            })
-            .catch(err => {
-                console.log(err)
-                toast.error('Something went wrong with the experience creation')
-            })
+        if (state.country && state.hotel && state.places && state.package) {
+            experiencesServices.createExperience(state)
+                .then(() => {
+                    toast.success('Experience created successfully!')
+                    navigate('/experiences/all')
+                })
+                .catch(err => {
+                    console.log(err)
+                    toast.error('Something went wrong with the experience creation')
+                })
+        } else {
+            toast.error('Please fill in all required fields')
+        }
     }
 
     const handleClear = () => {
-        setNewExp(initialState)
+        dispatch({ type: 'RESET' })
         setImagePreview('')
         toast.info('Fields have been cleared')
     }
@@ -112,7 +137,7 @@ const AddExpForm = () => {
                                 type="number"
                                 name="latitude"
                                 placeholder="Waiting for an address to display the latitude..."
-                                value={newExp.location.coordinates[1]}
+                                value={state.location.coordinates[1]}
                                 readOnly
                             />
                         </Form.Group>
@@ -123,15 +148,15 @@ const AddExpForm = () => {
                                 type="number"
                                 name="longitude"
                                 placeholder="Waiting for an address to display the latitude..."
-                                value={newExp.location.coordinates[0]}
+                                value={state.location.coordinates[0]}
                                 readOnly
                             />
                         </Form.Group>
                     </Col>
                 </Row>
 
-                {newExp.location.coordinates.length > 0 && (
-                    <LocationMap address={{ latitude: newExp.location.coordinates[1], longitude: newExp.location.coordinates[0] }} />
+                {state.location.coordinates.length > 0 && (
+                    <LocationMap address={{ latitude: state.location.coordinates[1], longitude: state.location.coordinates[0] }} />
                 )}
 
                 <Form.Group className="mb-3" controlId="package">
@@ -139,7 +164,7 @@ const AddExpForm = () => {
                         placeholder="PackageID"
                         type="text"
                         name="package"
-                        value={newExp.package}
+                        value={state.package}
                         onChange={handleInputChange}
                     />
                 </Form.Group>
@@ -150,7 +175,7 @@ const AddExpForm = () => {
                                 placeholder="Country"
                                 type="text"
                                 name="country"
-                                value={newExp.country}
+                                value={state.country}
                                 onChange={handleInputChange}
                             />
                         </Form.Group>
@@ -161,7 +186,7 @@ const AddExpForm = () => {
                                 placeholder="Hotel name"
                                 type="text"
                                 name='hotel'
-                                value={newExp.hotel}
+                                value={state.hotel}
                                 onChange={handleInputChange}
                             />
                         </Form.Group>
@@ -172,7 +197,7 @@ const AddExpForm = () => {
                         placeholder="Places to see"
                         type="text"
                         name="places"
-                        value={newExp.places}
+                        value={state.places}
                         onChange={handleInputChange}
                     />
                 </Form.Group>
@@ -207,7 +232,7 @@ const AddExpForm = () => {
                 </Row>
 
                 <ul className="image-links-list">
-                    {newExp.imageLinks.map((link, index) => (
+                    {state.imageLinks.map((link, index) => (
                         <li key={index} className="image-link-item">
                             <Button variant="danger" size="sm" onClick={() => handleRemoveImageLink(index)} className="remove-button">Remove</Button>
                             <span className="image-link-text">{link}</span>
