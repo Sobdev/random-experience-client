@@ -2,7 +2,7 @@ import Confetti from "react-confetti"
 import { InfoBox } from '../../components/InfoBox/InfoBox';
 import { Container, Card, Row, Col } from 'react-bootstrap';
 
-const AboutUs = () => {
+export const AboutUs = () => {
     return (
         <Container className='mt-5 mb-5'>
             <Confetti />
@@ -45,5 +45,3 @@ const AboutUs = () => {
         </Container>
     );
 };
-
-export default AboutUs
